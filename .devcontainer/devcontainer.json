@@ -1,0 +1,19 @@
+{
+    "name": "az-deployment-w-terraform",
+
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+
+    "workspaceFolder": "/workspaces/azure-deployment-w-terraform",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "hashicorp.terraform",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode.azure-account"
+            ]
+        }
+    }
+}
