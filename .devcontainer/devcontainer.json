@@ -5,8 +5,6 @@
         "dockerfile": "Dockerfile"
     },
 
-    "workspaceFolder": "/workspaces/azure-deployment-w-terraform",
-
     "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
 
     "mounts": [
