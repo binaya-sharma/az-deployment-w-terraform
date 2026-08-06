@@ -11,21 +11,41 @@ artifacts:
     build: uv build --wheel
 
 variables:
+  deployment_service_principal_application_id:
+    description: Application ID that owns stable bundle deployment state.
   catalog:
     description: Terraform-managed Unity Catalog catalog used by the pipeline.
-    default: retail_sandbox
   runtime_service_principal_application_id:
     description: Application ID of the only normal writer to the pipeline schemas.
-    default: REPLACE_BEFORE_DEPLOYMENT
-
-workspace:
-  host: https://adb-7405618741367416.16.azuredatabricks.net
 
 targets:
-  sandbox:
+  dev:
     default: true
     mode: production
+    workspace:
+      root_path: >-
+        /Workspace/Applications/retail-analytics-smoke-test/${bundle.target}/.bundle/${bundle.name}
     presets:
-      name_prefix: "[sandbox] "
+      name_prefix: "[dev] "
+    run_as:
+      service_principal_name: ${var.runtime_service_principal_application_id}
+
+  qual:
+    mode: production
+    workspace:
+      root_path: >-
+        /Workspace/Applications/retail-analytics-smoke-test/${bundle.target}/.bundle/${bundle.name}
+    presets:
+      name_prefix: "[qual] "
+    run_as:
+      service_principal_name: ${var.runtime_service_principal_application_id}
+
+  prod:
+    mode: production
+    workspace:
+      root_path: >-
+        /Workspace/Applications/retail-analytics-smoke-test/${bundle.target}/.bundle/${bundle.name}
+    presets:
+      name_prefix: "[prod] "
     run_as:
       service_principal_name: ${var.runtime_service_principal_application_id}

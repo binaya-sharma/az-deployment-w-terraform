@@ -6,7 +6,7 @@
 
 This repository will be a practical, end-to-end reference for building and operating an Azure Databricks platform. It covers the developer environment, Microsoft Entra ID, Azure foundations, Terraform, Unity Catalog, Python wheel packaging, Databricks bundle deployment, GitHub Actions, testing, security, cost, monitoring, recovery, and promotion through `dev`, `qual`, and `prod`.
 
-The first version intentionally uses **one Azure Databricks workspace with three Unity Catalog catalogs**. This is simple and cost-conscious, but it provides logical separation rather than the strongest production boundary. The future hardening path is a separate production subscription and workspace.
+The first version intentionally uses **one Azure Databricks workspace and its serverless default-storage catalog**. Terraform manages the development schemas and grants inside that catalog without adding customer-managed ADLS. Future `qual` and `prod` environments should use protected catalogs or separate workspaces when stronger isolation is required.
 
 ## Target outcome
 
@@ -86,9 +86,9 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Terraform backend | Implemented with Entra authentication, versioning, soft delete, container-scoped RBAC, and a deletion lock |
 | Azure platform | Deployed in `centralindia`; resource group and $10/month subscription budget managed by Terraform |
 | Databricks workspace | Deployed as Premium `Serverless`; no managed resource group or customer-managed networking |
-| Unity Catalog governance | Planned |
-| Python wheel and bundle | Planned |
-| GitHub Actions | Planned |
+| Unity Catalog governance | Implemented for dev schemas and runtime grants in `dbw_azref_sandbox_centralindia_001` |
+| Python wheel and bundle | Implemented; deployment awaits governance identities and catalog grants |
+| GitHub Actions | CI implemented; manual OIDC deployment scaffold added |
 | Monitoring and runbooks | Planned |
 
 ## Azure essentials

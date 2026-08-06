@@ -13,8 +13,8 @@ flowchart LR
 
 ## Deliberate limits
 
-- Three small synthetic source tables are generated in SQL.
-- Each layer uses `CREATE OR REPLACE TABLE`, making this a deterministic deployment smoke test rather than an incremental production ingestion design.
+- Bronze creates three empty Delta source contracts; no source records are inserted.
+- Silver and Gold preserve the end-to-end task and table dependency path but process zero rows. Their SQL exists only to verify packaging, permissions, and orchestration—not to demonstrate business transformations.
 - The bundle defines no schedule or trigger.
 - The job uses serverless task environments and stops after the Gold task.
 - Deployment is blocked by the placeholder runtime service-principal application ID until governance is ready.
@@ -55,11 +55,11 @@ Alternative wheel-job design:
 - Process each micro-batch with `foreachBatch` and an idempotent Delta `MERGE` that handles inserts, update post-images, and deletes.
 - Use available-now triggered execution for cost-controlled batch-style CDC unless latency requires a continuous stream.
 
-CDF identifies changed rows; Structured Streaming is the engine that incrementally consumes them. They are complementary rather than competing approaches. Keep the current `CREATE OR REPLACE` smoke test unchanged until this CDC design is implemented and tested separately.
+CDF identifies changed rows; Structured Streaming is the engine that incrementally consumes them. They are complementary rather than competing approaches. Keep the empty-source smoke test separate from this future CDC implementation.
 
 ## Governance prerequisite
 
-Terraform must first create catalog `retail_sandbox`, schemas `bronze`, `silver`, and `gold`, register the runtime service principal, and grant that principal `USE CATALOG`, `USE SCHEMA`, `SELECT`, `CREATE TABLE`, and `MODIFY` as appropriate. Human users should not receive normal write privileges.
+Terraform manages schemas `bronze`, `silver`, and `gold` inside the serverless default-storage catalog `dbw_azref_sandbox_centralindia_001`. It grants the runtime service principal `USE_CATALOG`, `USE_SCHEMA`, `SELECT`, `CREATE_TABLE`, and `MODIFY`. The catalog itself is workspace-managed because the public Terraform catalog resource cannot select Databricks default storage.
 
 ## Safe workflow
 
@@ -67,14 +67,25 @@ Commands that do not run Databricks compute:
 
 ```bash
 uv run pytest
-databricks bundle validate --target sandbox
-databricks bundle deploy --target sandbox
+databricks bundle validate --target dev
+databricks bundle deploy --target dev
 ```
 
 Deployment creates or updates the job definition but does not execute it. The following command starts serverless compute and can incur Databricks usage charges:
 
 ```bash
-databricks bundle run --target sandbox retail_medallion_smoke_test
+databricks bundle run --target dev retail_medallion_smoke_test
 ```
 
 Do not run it until the governance stack, runtime identity, bundle summary, and expected cost have been reviewed.
+
+
+## Verified deployment
+
+On 2026-08-06, job `365035251226465` completed run `1062278331394460` successfully under runtime service principal `7598c51f-25f3-44fc-9b89-a1af87366465`.
+
+- Bronze, Silver, and Gold all succeeded in dependency order.
+- Bronze source contracts contained no inserted records.
+- Nine managed Delta table definitions were created across the three schemas.
+- Bundle artifacts were read from a Terraform-managed restricted workspace directory.
+- The deployment workflow itself still does not invoke the job.

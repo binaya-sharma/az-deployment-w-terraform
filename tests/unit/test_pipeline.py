@@ -27,6 +27,12 @@ def test_each_layer_has_three_idempotent_statements(layer: str, expected_count: 
     assert all("CREATE OR REPLACE TABLE" in statement for statement in statements)
 
 
+def test_bronze_source_contracts_contain_no_records() -> None:
+    statements = statements_for("bronze", "retail_sandbox")
+    assert all("VALUES" not in statement for statement in statements)
+    assert all("USING DELTA" in statement for statement in statements)
+
+
 def test_unknown_layer_is_rejected() -> None:
     with pytest.raises(ValueError, match="Unsupported layer"):
         statements_for("platinum", "retail_sandbox")

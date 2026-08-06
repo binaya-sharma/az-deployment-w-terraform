@@ -93,3 +93,44 @@ variable "required_tags" {
     data_classification = "internal"
   }
 }
+
+variable "databricks_workspace_host" {
+  description = "Azure Databricks workspace URL used for Unity Catalog governance."
+  type        = string
+
+  validation {
+    condition     = can(regex("^https://adb-[0-9]+\\.[0-9]+\\.azuredatabricks\\.net/?$", var.databricks_workspace_host))
+    error_message = "Databricks workspace host must be an Azure Databricks adb URL using HTTPS."
+  }
+}
+
+variable "databricks_catalog_name" {
+  description = "Existing serverless default-storage catalog used by the development smoke test."
+  type        = string
+  default     = "dbw_azref_sandbox_centralindia_001"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9_]*$", var.databricks_catalog_name))
+    error_message = "Databricks catalog name must be a lowercase SQL identifier."
+  }
+}
+
+variable "runtime_service_principal_application_id" {
+  description = "Existing runtime service-principal application ID granted pipeline data access."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.runtime_service_principal_application_id))
+    error_message = "Runtime service-principal application ID must be a valid GUID."
+  }
+}
+
+variable "deployment_service_principal_application_id" {
+  description = "Existing deployment service-principal application ID managing bundle files and jobs."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.deployment_service_principal_application_id))
+    error_message = "Deployment service-principal application ID must be a valid GUID."
+  }
+}

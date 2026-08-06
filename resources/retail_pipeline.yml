@@ -5,6 +5,10 @@ resources:
       description: Manual-only Bronze, Silver, and Gold verification pipeline.
       max_concurrent_runs: 1
 
+      permissions:
+        - service_principal_name: ${var.deployment_service_principal_application_id}
+          level: CAN_MANAGE
+
       tasks:
         - task_key: bronze
           environment_key: default

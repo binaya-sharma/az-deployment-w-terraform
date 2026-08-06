@@ -1,0 +1,81 @@
+name: Deploy Databricks bundle
+
+on:
+  workflow_run:
+    workflows:
+      - CI quality gate
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Protected Databricks environment to promote
+        required: true
+        type: choice
+        options:
+          - qual
+          - prod
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: databricks-${{ github.event_name == 'workflow_run' && 'dev' || inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main') ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.ref == 'refs/heads/main')
+    name: Deploy ${{ github.event_name == 'workflow_run' && 'dev' || inputs.target }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: ${{ github.event_name == 'workflow_run' && 'dev' || inputs.target }}
+    env:
+      DEPLOY_TARGET: ${{ github.event_name == 'workflow_run' && 'dev' || inputs.target }}
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+      BUNDLE_VAR_deployment_service_principal_application_id: ${{ vars.DATABRICKS_CLIENT_ID }}
+      BUNDLE_VAR_catalog: ${{ vars.DATABRICKS_CATALOG }}
+      BUNDLE_VAR_runtime_service_principal_application_id: ${{ vars.DATABRICKS_RUNTIME_CLIENT_ID }}
+
+    steps:
+      - name: Check out tested source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@8821c27b1fe57472264eeb6e50c1f31d69552f28
+
+      - name: Validate environment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            DEPLOY_TARGET
+            DATABRICKS_HOST
+            DATABRICKS_CLIENT_ID
+            BUNDLE_VAR_deployment_service_principal_application_id
+            BUNDLE_VAR_catalog
+            BUNDLE_VAR_runtime_service_principal_application_id
+          )
+          for variable_name in "${required[@]}"; do
+            if [[ -z "${!variable_name:-}" ]]; then
+              printf 'GitHub environment variable %s is required.\n' "${variable_name}"
+              exit 1
+            fi
+          done
+
+      - name: Validate bundle
+        run: databricks bundle validate --target "${DEPLOY_TARGET}"
+
+      - name: Deploy bundle definitions
+        run: databricks bundle deploy --target "${DEPLOY_TARGET}"

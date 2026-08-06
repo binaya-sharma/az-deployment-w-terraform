@@ -21,28 +21,31 @@ def net_amount(quantity: int, unit_price: str, discount_percent: str) -> Decimal
 
 
 def bronze_statements(catalog: str) -> list[str]:
+    """Create empty source contracts for deployment-path verification."""
     customers = object_name(catalog, "bronze", "customers")
     products = object_name(catalog, "bronze", "products")
     sales = object_name(catalog, "bronze", "sales")
     return [
-        f"""CREATE OR REPLACE TABLE {customers} AS
-            SELECT * FROM VALUES
-              ('C001', '  Asha Sharma ', 'Kathmandu', 'gold'),
-              ('C002', 'Bikash Rai', 'Pokhara', 'silver'),
-              ('C003', 'Mina Thapa', 'Lalitpur', NULL)
-            AS source(customer_id, customer_name, city, loyalty_tier)""",
-        f"""CREATE OR REPLACE TABLE {products} AS
-            SELECT * FROM VALUES
-              ('P001', 'Coffee Beans', 'grocery', 12.50),
-              ('P002', 'Travel Mug', 'home', 18.00),
-              ('P003', 'Tea Selection', 'grocery', 9.75)
-            AS source(product_id, product_name, category, unit_price)""",
-        f"""CREATE OR REPLACE TABLE {sales} AS
-            SELECT * FROM VALUES
-              ('S001', timestamp('2026-08-01 10:00:00'), 'C001', 'P001', 2, 10.0),
-              ('S002', timestamp('2026-08-01 11:30:00'), 'C002', 'P002', 1, 0.0),
-              ('S003', timestamp('2026-08-02 09:15:00'), 'C001', 'P003', 3, 5.0)
-            AS source(sale_id, sale_ts, customer_id, product_id, quantity, discount_percent)""",
+        f"""CREATE OR REPLACE TABLE {customers} (
+            customer_id STRING,
+            customer_name STRING,
+            city STRING,
+            loyalty_tier STRING
+        ) USING DELTA""",
+        f"""CREATE OR REPLACE TABLE {products} (
+            product_id STRING,
+            product_name STRING,
+            category STRING,
+            unit_price DECIMAL(12,2)
+        ) USING DELTA""",
+        f"""CREATE OR REPLACE TABLE {sales} (
+            sale_id STRING,
+            sale_ts TIMESTAMP,
+            customer_id STRING,
+            product_id STRING,
+            quantity INT,
+            discount_percent DECIMAL(5,2)
+        ) USING DELTA""",
     ]
 
 

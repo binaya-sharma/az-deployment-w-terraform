@@ -4,6 +4,10 @@ tenant_id       = "00000000-0000-0000-0000-000000000000"
 location                  = "centralindia"
 resource_group_name       = "rg-azref-platform-centralindia-001"
 databricks_workspace_name = "dbw-azref-sandbox-centralindia-001"
+databricks_workspace_host                = "https://adb-0000000000000000.00.azuredatabricks.net"
+databricks_catalog_name                  = "dbw_azref_sandbox_centralindia_001"
+runtime_service_principal_application_id = "00000000-0000-0000-0000-000000000000"
+deployment_service_principal_application_id = "00000000-0000-0000-0000-000000000000"
 
 budget_name           = "budget-azref-sandbox-monthly"
 monthly_budget_amount = 10
