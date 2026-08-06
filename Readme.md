@@ -1,6 +1,6 @@
 # Azure Databricks reference platform with Terraform
 
-> **Status:** architecture and implementation blueprint; no Azure resources are provisioned yet.
+> **Status:** bootstrap and minimal serverless Azure Databricks platform deployed; Unity Catalog governance and application deployment are next.
 >
 > **Last reviewed:** 2026-08-01. Recheck the linked official documentation before implementation or upgrades.
 
@@ -84,8 +84,8 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Dev container | Initial scaffold committed; pinning and build tests planned |
 | Resource-group Terraform module | Implemented; four mocked tests pass without an Azure subscription |
 | Terraform backend | Implemented with Entra authentication, versioning, soft delete, container-scoped RBAC, and a deletion lock |
-| Azure platform | Planned |
-| Databricks workspace | Planned |
+| Azure platform | Deployed in `centralindia`; resource group and $10/month subscription budget managed by Terraform |
+| Databricks workspace | Deployed as Premium `Serverless`; no managed resource group or customer-managed networking |
 | Unity Catalog governance | Planned |
 | Python wheel and bundle | Planned |
 | GitHub Actions | Planned |
@@ -151,14 +151,14 @@ Important terms:
 
 | Decision | Initial direction | Value |
 | --- | --- | --- |
-| Tenant | Existing organization tenant | `<tenant-id>` |
-| Subscriptions | Sandbox initially; separate production later | `<subscription-id(s)>` |
-| Region | Keep workspace, metastore, and storage region-compatible | `<region>` |
+| Tenant | Existing organization tenant | `bbc40903-74f4-495f-9185-08f2bf5b64be` |
+| Subscriptions | Sandbox initially; separate production later | `sub-azdbx-sandbox-001` |
+| Region | Keep workspace, metastore, and storage region-compatible | `centralindia` |
 | Naming prefix | Short and stable | `<org>-<project>` |
 | Tags | application, environment, owner, cost center, managed by, data classification | `<values>` |
 | Network | Serverless-first public-hardened design; no customer-managed NAT Gateway or static egress IP initially | Accepted |
 | Recovery | Define RTO, RPO, backup, and regional expectations | `<targets>` |
-| Budget | Actual and forecast alerts | `<amount/currency>` |
+| Budget | Monthly budget with actual-spend alerts at 50%, 80%, and 100% | `10` in the subscription billing currency |
 | Shared workspace exit | Compliance, scale, data sensitivity, or blast-radius trigger | `<trigger>` |
 
 ### Bootstrap boundary

@@ -1,0 +1,20 @@
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+location                  = "centralindia"
+resource_group_name       = "rg-azref-platform-centralindia-001"
+databricks_workspace_name = "dbw-azref-sandbox-centralindia-001"
+
+budget_name           = "budget-azref-sandbox-monthly"
+monthly_budget_amount = 10
+budget_start_date      = "2026-08-01T00:00:00Z"
+budget_end_date        = "2036-08-01T00:00:00Z"
+budget_contact_emails  = ["owner@example.com"]
+
+required_tags = {
+  application         = "azref"
+  environment         = "sandbox"
+  owner               = "platform-owner"
+  cost_center         = "learning"
+  data_classification = "internal"
+}
