@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /workspaces/azure-deployment-w-terraform
+
+# Create the project-local environment. Never authenticate or deploy here.
+uv sync --extra dev
+
+uv run python --version
+uv --version
+terraform version | head -n 1
+az version --query '"azure-cli"' --output tsv
+databricks version
+java -version
+
+printf '\nContainer ready. Run az login explicitly when cloud access is needed.\n'

@@ -1,0 +1,51 @@
+resources:
+  jobs:
+    retail_medallion_smoke_test:
+      name: retail-medallion-smoke-test
+      description: Manual-only Bronze, Silver, and Gold verification pipeline.
+      max_concurrent_runs: 1
+
+      tasks:
+        - task_key: bronze
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_analytics
+            entry_point: retail-pipeline
+            parameters:
+              - --layer
+              - bronze
+              - --catalog
+              - ${var.catalog}
+
+        - task_key: silver
+          depends_on:
+            - task_key: bronze
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_analytics
+            entry_point: retail-pipeline
+            parameters:
+              - --layer
+              - silver
+              - --catalog
+              - ${var.catalog}
+
+        - task_key: gold
+          depends_on:
+            - task_key: silver
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_analytics
+            entry_point: retail-pipeline
+            parameters:
+              - --layer
+              - gold
+              - --catalog
+              - ${var.catalog}
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl

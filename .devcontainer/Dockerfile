@@ -7,8 +7,12 @@ RUN apt-get update && \
     curl \
     jq \
     gnupg \
+    make \
+    shellcheck \
     software-properties-common \
-    lsb-release && \
+    lsb-release \
+    unzip \
+    zip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -36,6 +40,9 @@ RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/insta
 # Install for the non-root user used by VS Code and keep its binary on PATH.
 USER vscode
 ENV PATH="/home/vscode/.local/bin:${PATH}"
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    uv --version
+
 RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh && \
     codex --version
 

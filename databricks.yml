@@ -1,0 +1,31 @@
+bundle:
+  name: retail-analytics-smoke-test
+  databricks_cli_version: ">= 1.10.0"
+
+include:
+  - resources/*.yml
+
+artifacts:
+  wheel:
+    type: whl
+    build: uv build --wheel
+
+variables:
+  catalog:
+    description: Terraform-managed Unity Catalog catalog used by the pipeline.
+    default: retail_sandbox
+  runtime_service_principal_application_id:
+    description: Application ID of the only normal writer to the pipeline schemas.
+    default: REPLACE_BEFORE_DEPLOYMENT
+
+workspace:
+  host: https://adb-7405618741367416.16.azuredatabricks.net
+
+targets:
+  sandbox:
+    default: true
+    mode: production
+    presets:
+      name_prefix: "[sandbox] "
+    run_as:
+      service_principal_name: ${var.runtime_service_principal_application_id}

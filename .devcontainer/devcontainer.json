@@ -7,6 +7,8 @@
 
     "workspaceFolder": "/workspaces/azure-deployment-w-terraform",
 
+    "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+
     "mounts": [
         "source=azure-deployment-codex-data,target=/home/vscode/.codex,type=volume"
     ],
@@ -18,6 +20,8 @@
                 "eamodio.gitlens",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
+                "charliermarsh.ruff",
+                "ms-python.mypy-type-checker",
                 "redhat.vscode-yaml",
                 "databricks.databricks",
                 "ms-vscode.azurecli",
@@ -27,7 +31,13 @@
                 "hashicorp.terraform",
                 "ms-azuretools.vscode-docker",
                 "ms-azuretools.vscode-azureresourcegroups"
-            ]
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestArgs": ["tests"],
+                "python.analysis.typeCheckingMode": "basic"
+            }
         }
     }
 }

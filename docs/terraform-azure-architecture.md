@@ -275,6 +275,12 @@ Terraform does not yet create:
 - custom catalogs, schemas, grants, identities, or workspace settings;
 - GitHub OIDC identities or deployment workflows.
 
+- Azure Container Registry; dev-container images currently build locally or ephemerally in CI and are not pushed to a paid registry.
+
+### Future ACR decision
+
+Azure Container Registry remains in scope for a later phase when shared prebuilt dev-container images, controlled image promotion, vulnerability scanning, or faster CI builds justify it. Until then, local Docker builds and GitHub CI with `push: never` avoid registry storage and operation charges. Before enabling ACR, define image retention, immutable tags or digests, cleanup, RBAC/OIDC push access, and the monthly cost ceiling.
+
 These are later design decisions with security, ownership, and cost consequences.
 
 ## Operational commands

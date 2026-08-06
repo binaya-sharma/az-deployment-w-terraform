@@ -29,6 +29,7 @@ build/
 
 # Local credentials and editor/OS files
 .azure/
+.databricks/
 .databrickscfg
 .env
 .env.*
