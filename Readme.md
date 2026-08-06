@@ -83,7 +83,7 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Architecture and roadmap | Documented here |
 | Dev container | Initial scaffold committed; pinning and build tests planned |
 | Resource-group Terraform module | Implemented; four mocked tests pass without an Azure subscription |
-| Terraform backend | Planned |
+| Terraform backend | Implemented with Entra authentication, versioning, soft delete, container-scoped RBAC, and a deletion lock |
 | Azure platform | Planned |
 | Databricks workspace | Planned |
 | Unity Catalog governance | Planned |
@@ -280,13 +280,15 @@ terraform -chdir=infrastructure/modules/resource-group test
 
 The tests use Terraform's mocked AzureRM provider, so they load the real provider schema but never call Azure or create billable infrastructure. Four tests currently cover the successful resource/tag contract and rejection of an invalid name, unsupported environment, and reserved tag override.
 
-The [deployable example](infrastructure/examples/resource-group/main.tf) pins AzureRM `5.x`; the reusable module declares its minimum supported constraint; the committed module lock file records the provider version used by the current tests. Both root configurations commit their provider lock files. A real plan/apply will be added only after an Azure subscription and authentication are available.
+The reusable module declares its minimum supported AzureRM constraint; its committed lock file records the provider version used by the current mocked tests. The live bootstrap root pins AzureRM `5.x` and commits its own provider lock file.
 
 ### Remote state
 
 Use the `azurerm` backend with Entra data-plane authentication. Local work uses Azure CLI authentication; CI uses OIDC with `use_oidc = true` and `use_azuread_auth = true`.
 
-The bootstrap stack creates the backend and minimum RBAC, then migrates its local state to the protected backend. Document this chicken-and-egg step and test recovery.
+The bootstrap stack creates the backend and minimum RBAC, then migrates its local state to the protected backend. The sandbox implementation uses one Standard LRS storage account in `centralindia`; it has no compute or fixed networking resources and costs less than one cent per month at the current state size. Recovery from a previous blob version still needs to be exercised and documented.
+
+Implemented bootstrap path: `rg-azref-bootstrap-centralindia-001` → `stazreftfstate5f78` → `tfstate` → `bootstrap/terraform.tfstate`. New checkouts initialize it with Azure CLI authentication and `use_azuread_auth=true`; no account key or backend secret is committed.
 
 Planned state keys:
 
@@ -644,7 +646,7 @@ Required runbooks:
 
 ## Repository layout
 
-The resource-group module and example exist now. Other paths show the intended end state.
+The resource-group module and live bootstrap stack exist now. Other paths show the intended end state.
 
 ```text
 .
@@ -661,10 +663,13 @@ The resource-group module and example exist now. Other paths show the intended e
 │   └── diagrams/
 ├── infrastructure/
 │   ├── bootstrap/
-│   ├── examples/
-│   │   └── resource-group/
-│   │       ├── .terraform.lock.hcl
-│   │       └── main.tf
+│   │   ├── .terraform.lock.hcl
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   ├── providers.tf
+│   │   ├── terraform.tfvars.example
+│   │   ├── variables.tf
+│   │   └── versions.tf
 │   ├── modules/
 │   │   └── resource-group/
 │   │       ├── tests/
@@ -721,11 +726,13 @@ The resource-group module and example exist now. Other paths show the intended e
 
 ### Phase 2 — Terraform bootstrap
 
-- [x] Add and test the first reusable resource-group module and deployable example.
-- [ ] Create protected remote state and least-privilege RBAC.
-- [ ] Configure Azure CLI locally and OIDC in CI.
-- [ ] Migrate state and test recovery.
-- [ ] Pin providers and commit the lock file.
+- [x] Add and test the reusable resource-group module.
+- [x] Create protected remote state and least-privilege local-user RBAC.
+- [x] Configure Azure CLI locally.
+- [ ] Configure OIDC in CI and grant its identity container-scoped state access.
+- [x] Migrate the bootstrap state and verify a zero-change remote plan.
+- [ ] Exercise and document recovery from a previous blob version.
+- [x] Pin the bootstrap provider and commit its lock file.
 
 **Done when:** CI plans safely without a client secret.
 
