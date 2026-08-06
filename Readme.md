@@ -236,6 +236,8 @@ uv --version
 
 Terraform owns long-lived Azure and Databricks foundations. Bundles own application jobs and releases.
 
+For a detailed explanation of the deployed Terraform architecture, Azure-side resources, remote state, providers, dependency graph, cost boundary, and command lifecycle, see [Terraform and Azure architecture](docs/terraform-azure-architecture.md).
+
 ### Resource-group module (implemented)
 
 The first reusable child module creates one Azure resource group and standardizes the baseline tags. It is intentionally small so the repository can establish module structure, validation, testing, provider locking, and examples before an Azure subscription is available.
