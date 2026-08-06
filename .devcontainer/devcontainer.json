@@ -7,9 +7,23 @@
 
     "workspaceFolder": "/workspaces/azure-deployment-w-terraform",
 
+    "mounts": [
+        "source=azure-deployment-codex-data,target=/home/vscode/.codex,type=volume"
+    ],
+
     "customizations": {
         "vscode": {
             "extensions": [
+                "openai.chatgpt",
+                "eamodio.gitlens",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "redhat.vscode-yaml",
+                "databricks.databricks",
+                "ms-vscode.azurecli",
+                "github.vscode-github-actions",
+                "davidanson.vscode-markdownlint",
+                "timonwong.shellcheck",
                 "hashicorp.terraform",
                 "ms-azuretools.vscode-docker",
                 "ms-vscode.azure-account"

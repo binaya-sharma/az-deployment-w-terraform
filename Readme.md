@@ -81,7 +81,8 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Capability | Status |
 | --- | --- |
 | Architecture and roadmap | Documented here |
-| Dev container | Planned |
+| Dev container | Initial scaffold committed; pinning and build tests planned |
+| Resource-group Terraform module | Implemented; four mocked tests pass without an Azure subscription |
 | Terraform backend | Planned |
 | Azure platform | Planned |
 | Databricks workspace | Planned |
@@ -155,10 +156,18 @@ Important terms:
 | Region | Keep workspace, metastore, and storage region-compatible | `<region>` |
 | Naming prefix | Short and stable | `<org>-<project>` |
 | Tags | application, environment, owner, cost center, managed by, data classification | `<values>` |
-| Network | Explicit public-hardened or private design | `<decision>` |
+| Network | Serverless-first public-hardened design; no customer-managed NAT Gateway or static egress IP initially | Accepted |
 | Recovery | Define RTO, RPO, backup, and regional expectations | `<targets>` |
 | Budget | Actual and forecast alerts | `<amount/currency>` |
 | Shared workspace exit | Compliance, scale, data sensitivity, or blast-radius trigger | `<trigger>` |
+
+### Bootstrap boundary
+
+This repository assumes that the Microsoft Entra tenant and the first Azure subscription already exist before Terraform is applied. Prefer an existing organization tenant; create a new tenant only for an intentionally isolated lab or when no suitable tenant exists. Create or select the initial sandbox subscription through the organization billing and administration process, associate it with the chosen tenant, and verify the operator has the required ownership.
+
+Automating tenant creation, billing-account setup, or the first subscription is outside this repository scope. A future organization-level subscription-factory stack may automate additional subscriptions when the required billing scope and permissions exist. This repository starts Terraform ownership at the bootstrap resource group, remote-state storage, state container, and minimum RBAC. Existing resources must be imported instead of recreated.
+
+Tenant IDs and subscription IDs are identifiers, not credentials, but passwords, tokens, client secrets, storage keys, and local authentication files must never be committed.
 
 ### Expected Azure resources
 
@@ -169,7 +178,8 @@ Important terms:
 - An Azure Key Vault per application/environment for exceptional secrets.
 - Log Analytics, diagnostic settings, alerts, and retention.
 - Azure budgets and cost alerts.
-- Optional VNet injection, Secure Cluster Connectivity, NAT/Firewall, Private Link, private endpoints, and Private DNS.
+- A serverless-first Azure Databricks workspace without a customer-managed NAT Gateway or static egress IP in the initial sandbox.
+- VNet injection, NAT Gateway, stable egress IPs, Private Link, Azure Firewall, private endpoints, and Private DNS remain optional future hardening.
 
 Do not add private networking mechanically. It changes DNS, runner placement, developer access, package downloads, and troubleshooting. New VNets created after 2026-03-31 require an explicit outbound method; plan NAT Gateway, Azure Firewall, or another supported route.
 
@@ -226,6 +236,52 @@ uv --version
 
 Terraform owns long-lived Azure and Databricks foundations. Bundles own application jobs and releases.
 
+### Resource-group module (implemented)
+
+The first reusable child module creates one Azure resource group and standardizes the baseline tags. It is intentionally small so the repository can establish module structure, validation, testing, provider locking, and examples before an Azure subscription is available.
+
+The module:
+
+- Validates Azure resource-group length and naming rules with a deliberately strict ASCII character set.
+- Requires non-empty application, environment, owner, cost-center, and data-classification tags.
+- Adds `managed_by = "terraform"`.
+- Supports up to 44 additional tags while protecting the six standard tag keys.
+- Exposes the resource-group ID, name, location, and final tags.
+- Does not contain a provider configuration; the calling root module owns authentication and provider settings.
+
+Example use:
+
+```hcl
+module "resource_group" {
+  source = "../../modules/resource-group"
+
+  name     = "rg-azref-dev-uksouth-001"
+  location = "uksouth"
+  required_tags = {
+    application         = "azref"
+    environment         = "dev"
+    owner               = "platform-team"
+    cost_center         = "learning"
+    data_classification = "internal"
+  }
+  additional_tags = {
+    purpose = "terraform-module-example"
+  }
+}
+```
+
+Run its credential-free tests from the repository root:
+
+```bash
+terraform -chdir=infrastructure/modules/resource-group init -backend=false
+terraform -chdir=infrastructure/modules/resource-group validate
+terraform -chdir=infrastructure/modules/resource-group test
+```
+
+The tests use Terraform's mocked AzureRM provider, so they load the real provider schema but never call Azure or create billable infrastructure. Four tests currently cover the successful resource/tag contract and rejection of an invalid name, unsupported environment, and reserved tag override.
+
+The [deployable example](infrastructure/examples/resource-group/main.tf) pins AzureRM `5.x`; the reusable module declares its minimum supported constraint; the committed module lock file records the provider version used by the current tests. Both root configurations commit their provider lock files. A real plan/apply will be added only after an Azure subscription and authentication are available.
+
 ### Remote state
 
 Use the `azurerm` backend with Entra data-plane authentication. Local work uses Azure CLI authentication; CI uses OIDC with `use_oidc = true` and `use_azuread_auth = true`.
@@ -260,6 +316,7 @@ Backend controls:
 terraform fmt -check -diff -recursive
 terraform init -backend=false -input=false
 terraform validate -no-color
+terraform test
 tflint --recursive
 ```
 
@@ -585,13 +642,15 @@ Required runbooks:
 - Private endpoint/DNS/routing troubleshooting.
 - Break-glass use and reconciliation.
 
-## Planned repository layout
+## Repository layout
 
-Only this README exists now.
+The resource-group module and example exist now. Other paths show the intended end state.
 
 ```text
 .
 ├── .devcontainer/
+│   ├── Dockerfile
+│   └── devcontainer.json
 ├── .github/
 │   ├── workflows/
 │   ├── CODEOWNERS
@@ -602,7 +661,19 @@ Only this README exists now.
 │   └── diagrams/
 ├── infrastructure/
 │   ├── bootstrap/
+│   ├── examples/
+│   │   └── resource-group/
+│   │       ├── .terraform.lock.hcl
+│   │       └── main.tf
 │   ├── modules/
+│   │   └── resource-group/
+│   │       ├── tests/
+│   │       │   └── resource_group.tftest.hcl
+│   │       ├── .terraform.lock.hcl
+│   │       ├── main.tf
+│   │       ├── outputs.tf
+│   │       ├── variables.tf
+│   │       └── versions.tf
 │   └── stacks/
 │       ├── platform/
 │       ├── governance-shared/
@@ -628,7 +699,10 @@ Only this README exists now.
 
 ### Phase 0 — Decisions
 
-- [ ] Choose tenant, subscriptions, region, prefix, owners, tags, network, budget, classification, and recovery targets.
+- [ ] Select the existing organization tenant, or document why an isolated new tenant is required.
+- [ ] Create or select the initial sandbox subscription outside this Terraform stack and associate it with the chosen tenant.
+- [ ] Record tenant ID, subscription ID, region, prefix, owners, tags, network, budget, classification, and recovery targets.
+- [ ] Verify the local operator has the required subscription ownership and tenant permissions.
 - [ ] Confirm authority for Entra federation/RBAC, Databricks account objects, and Unity Catalog.
 - [ ] Decide whether workspace and metastore are existing or new.
 - [ ] Record the accepted shared-workspace risk and exit trigger.
@@ -637,14 +711,17 @@ Only this README exists now.
 
 ### Phase 1 — Developer experience
 
-- [ ] Add pinned dev-container files and lock.
-- [ ] Add Python project, `uv.lock`, checks, pre-commit, and `.gitignore`.
+- [x] Add the initial dev-container scaffold.
+- [x] Add a safe baseline `.gitignore`.
+- [ ] Pin the dev-container tools and commit its lock.
+- [ ] Add Python project, `uv.lock`, checks, and pre-commit.
 - [ ] Build-test the container without credentials.
 
 **Done when:** a new contributor runs all local checks without host tool installation.
 
 ### Phase 2 — Terraform bootstrap
 
+- [x] Add and test the first reusable resource-group module and deployable example.
 - [ ] Create protected remote state and least-privilege RBAC.
 - [ ] Configure Azure CLI locally and OIDC in CI.
 - [ ] Migrate state and test recovery.
@@ -711,6 +788,9 @@ uv sync --locked
 pre-commit run --all-files
 uv run pytest
 terraform fmt -check -diff -recursive
+terraform -chdir=infrastructure/modules/resource-group init -backend=false
+terraform -chdir=infrastructure/modules/resource-group validate
+terraform -chdir=infrastructure/modules/resource-group test
 databricks bundle validate --target dev
 databricks bundle deploy --target dev
 databricks bundle run --target dev wheel_job
@@ -738,6 +818,8 @@ Do not apply Terraform or deploy `qual`/`prod` from a laptop.
 - [Terraform AzureRM backend](https://developer.hashicorp.com/terraform/language/backend/azurerm)
 - [Terraform format and validation](https://developer.hashicorp.com/terraform/cli/code)
 - [Terraform automation](https://developer.hashicorp.com/terraform/tutorials/automation/automate-terraform)
+- [Terraform provider mocking](https://developer.hashicorp.com/terraform/language/tests/mocking)
+- [Terraform test command](https://developer.hashicorp.com/terraform/cli/commands/test)
 
 ### Azure and Entra
 
@@ -750,6 +832,8 @@ Do not apply Terraform or deploy `qual`/`prod` from a laptop.
 - [Managed identities](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview)
 - [GitHub Actions OIDC with Azure](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect)
 - [Azure Databricks networking](https://learn.microsoft.com/en-us/azure/databricks/security/network/)
+- [Azure resource naming rules](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules)
+- [Azure tagging limits and guidance](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources)
 
 ### Azure Databricks
 

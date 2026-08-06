@@ -32,5 +32,11 @@ RUN apt-get update && \
 # Databricks CLI
 RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
 
+# Codex CLI
+# Install for the non-root user used by VS Code and keep its binary on PATH.
+USER vscode
+ENV PATH="/home/vscode/.local/bin:${PATH}"
+RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh && \
+    codex --version
 
-WORKDIR /azure-deployment-w-terraform
+WORKDIR /workspaces/azure-deployment-w-terraform
