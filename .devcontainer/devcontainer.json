@@ -40,5 +40,6 @@
         "gitlens.codeLens.enabled": true
       }
     }
-  }
+  },
+  "postAttachCommand": "bash .devcontainer/scripts/install-extensions.sh"
 }
