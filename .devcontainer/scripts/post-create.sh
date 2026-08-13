@@ -29,7 +29,9 @@ if command -v code >/dev/null 2>&1; then
     for extension_id in "${required_extensions[@]}"; do
         if ! grep -Fqx "${extension_id}" <<< "${installed_extensions}"; then
             printf "Installing required VS Code extension %s\n" "${extension_id}"
-            code --install-extension "${extension_id}" --force
+            if ! code --install-extension "${extension_id}" --force; then
+                printf "Warning: could not install VS Code extension %s; VS Code will retry from Dev Container metadata.\n" "${extension_id}" >&2
+            fi
         fi
     done
 else
