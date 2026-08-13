@@ -134,6 +134,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.deploy.outputs.release_tag }}
       RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
 
     steps:
