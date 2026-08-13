@@ -189,6 +189,28 @@ databricks bundle deploy --target dev
 
 It uploads the wheel and bundle files, then reconciles the job definition. It does not execute the job.
 
+## Automatic dev prereleases
+
+After a successful automatic `dev` deployment, the same workflow publishes a GitHub prerelease. A release is never created when CI, authentication, bundle validation, or deployment fails.
+
+For project base version `0.1.0`, a workflow run produces values such as:
+
+```text
+Python wheel version: 0.1.0.dev18
+Git tag/release:      v0.1.0-dev.18
+```
+
+The release contains the exact wheel produced and deployed by that deployment job plus `SHA256SUMS`. The release job downloads the preserved artifact instead of rebuilding it. Rerunning the same workflow is idempotent: it reuses the same tag and replaces matching assets rather than creating a duplicate release.
+
+Dev releases are marked as GitHub **prereleases** because automatic deployment to `dev` is not a production release decision. Stable SemVer tags such as `v0.1.0` will be added with the future protected `qual` and `prod` promotion process.
+
+Least-privilege permissions remain separated:
+
+```text
+Databricks deploy job -> contents: read, id-token: write
+GitHub release job    -> contents: write, no Databricks OIDC permission
+```
+
 ## Troubleshooting history
 
 | Error | Cause | Resolution |

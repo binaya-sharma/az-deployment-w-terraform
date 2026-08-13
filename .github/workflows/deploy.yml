@@ -18,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: databricks-${{ github.event_name == 'workflow_run' && 'dev' || inputs.target }}
@@ -26,6 +25,12 @@ concurrency:
 
 jobs:
   deploy:
+    outputs:
+      release_tag: ${{ steps.release_version.outputs.tag }}
+      release_version: ${{ steps.release_version.outputs.version }}
+    permissions:
+      contents: read
+      id-token: write
     if: >-
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success' &&
@@ -59,6 +64,19 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      - name: Prepare dev prerelease version
+        id: release_version
+        if: github.event_name == 'workflow_run'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_version="$(uv version --short)"
+          release_version="${base_version}.dev${GITHUB_RUN_NUMBER}"
+          release_tag="v${base_version}-dev.${GITHUB_RUN_NUMBER}"
+          uv version "${release_version}"
+          printf 'version=%s\n' "${release_version}" >> "${GITHUB_OUTPUT}"
+          printf 'tag=%s\n' "${release_tag}" >> "${GITHUB_OUTPUT}"
+
       - name: Install Databricks CLI
         uses: databricks/setup-cli@8821c27b1fe57472264eeb6e50c1f31d69552f28
 
@@ -86,3 +104,55 @@ jobs:
 
       - name: Deploy bundle definitions
         run: databricks bundle deploy --target "${DEPLOY_TARGET}"
+
+      - name: Record deployed wheel checksum
+        if: github.event_name == 'workflow_run'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum dist/*.whl > dist/SHA256SUMS
+
+      - name: Preserve deployed wheel for release
+        if: github.event_name == 'workflow_run'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dev-release-${{ github.run_id }}
+          path: |
+            dist/*.whl
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+
+  release-dev:
+    name: Publish dev prerelease
+    needs: deploy
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ needs.deploy.outputs.release_tag }}
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Download deployed wheel
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        with:
+          name: dev-release-${{ github.run_id }}
+          path: release
+
+      - name: Publish GitHub prerelease
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" release/* --clobber
+          else
+            gh release create "${RELEASE_TAG}" release/* \
+              --target "${RELEASE_SHA}" \
+              --title "${RELEASE_TAG}" \
+              --generate-notes \
+              --prerelease
+          fi

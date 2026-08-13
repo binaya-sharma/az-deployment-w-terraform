@@ -2,15 +2,15 @@
 
 > **Status:** minimal serverless Azure Databricks platform, Unity Catalog governance, CI, and passwordless `dev` bundle deployment are operational.
 >
-> **Last reviewed:** 2026-08-01. Recheck the linked official documentation before implementation or upgrades.
+> **Last reviewed:** 2026-08-13. Recheck the linked official documentation before implementation or upgrades.
 
-This repository will be a practical, end-to-end reference for building and operating an Azure Databricks platform. It covers the developer environment, Microsoft Entra ID, Azure foundations, Terraform, Unity Catalog, Python wheel packaging, Databricks bundle deployment, GitHub Actions, testing, security, cost, monitoring, recovery, and promotion through `dev`, `qual`, and `prod`.
+This repository is a practical, end-to-end learning reference for building and deploying an Azure Databricks platform. It covers the developer environment, Microsoft Entra ID, Azure foundations, Terraform, Unity Catalog, Python wheel packaging, Databricks bundle deployment, GitHub Actions, testing, security, cost, monitoring, recovery, and promotion through `dev`, `qual`, and `prod`.
 
 The first version intentionally uses **one Azure Databricks workspace and its serverless default-storage catalog**. Terraform manages the development schemas and grants inside that catalog without adding customer-managed ADLS. Future `qual` and `prod` environments should use protected catalogs or separate workspaces when stronger isolation is required.
 
 ## Target outcome
 
-When complete, this repository should provide:
+The implemented prototype and remaining production roadmap cover:
 
 - A reproducible, non-root dev container with pinned tools.
 - Terraform-managed Azure and Databricks foundations.
@@ -37,28 +37,27 @@ When complete, this repository should provide:
 ```mermaid
 flowchart LR
     DEV[Engineer] --> DC[Dev container]
-    DC -->|Azure CLI user login| AZ[Azure]
-    DC -->|Databricks OAuth user login| DBX[Shared Databricks workspace]
+    DC -->|Azure CLI user login| AZ[Azure platform]
+    DC -->|Azure CLI auth| DBX[Azure Databricks workspace]
 
-    GH[GitHub Actions] -->|OIDC| ENTRA[Microsoft Entra ID]
-    ENTRA -->|short-lived Azure token| AZ
-    GH -->|Databricks OAuth federation| DBX
+    GH[GitHub Actions] --> CI[CI quality gate]
+    CI -->|success on main| OIDC[GitHub OIDC token]
+    OIDC -->|Databricks federation| DSP[Deployment service principal]
+    DSP --> DAB[Bundle deploy]
+    DAB --> JOB[Dev job definition]
+    DAB --> REL[Versioned GitHub prerelease]
 
-    GH --> TF[Terraform]
-    TF --> AZ
+    TF[Local Terraform] --> AZ
     TF --> DBX
-    GH --> DAB[Databricks bundle]
-    DAB --> DBX
+    DBX --> CAT[Workspace default catalog]
+    CAT --> BRONZE[bronze schema]
+    CAT --> SILVER[silver schema]
+    CAT --> GOLD[gold schema]
+    RSP[Runtime service principal] -->|governed grants| CAT
+    JOB -->|run as; manual execution only| RSP
 
-    DBX --> CDEV[project_dev catalog]
-    DBX --> CQUAL[project_qual catalog]
-    DBX --> CPROD[project_prod catalog]
-    CDEV --> SDEV[Dev storage root]
-    CQUAL --> SQUAL[Qual storage root]
-    CPROD --> SPROD[Prod storage root]
-
-    AZ --> MON[Azure Monitor / Log Analytics]
-    DBX --> AUDIT[System tables / audit / job alerts]
+    FUTURE[Future: GitHub OIDC to Azure] -.-> TF
+    FUTURE -.-> QP[Protected qual/prod promotion]
 ```
 
 Azure OIDC and Databricks OIDC are **separate trust configurations**. A successful `azure/login` does not automatically authorize Databricks API calls.
@@ -81,7 +80,7 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Capability | Status |
 | --- | --- |
 | Architecture and roadmap | Documented here |
-| Dev container | Initial scaffold committed; pinning and build tests planned |
+| Dev container | Operational; CI rebuilds it and essential editor extensions are repaired after VS Code attaches |
 | Resource-group Terraform module | Implemented; four mocked tests pass without an Azure subscription |
 | Terraform backend | Implemented with Entra authentication, versioning, soft delete, container-scoped RBAC, and a deletion lock |
 | Azure platform | Deployed in `centralindia`; resource group and $10/month subscription budget managed by Terraform |
@@ -89,7 +88,7 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Unity Catalog governance | Implemented for dev schemas and runtime grants in `dbw_azref_sandbox_centralindia_001` |
 | Python wheel and bundle | Implemented and deployed to `dev`; deployment does not execute the job |
 | GitHub Actions | CI and automatic passwordless `dev` deployment operational; `qual` and `prod` remain manual |
-| Monitoring and runbooks | Planned |
+| Deployment runbook | Verified and documented; monitoring, recovery, and rollback runbooks remain planned |
 
 ## Azure essentials
 
@@ -205,13 +204,14 @@ The committed dev container will provide the same core toolchain locally and in 
 - Ruff, pytest, a type checker, markdownlint, yamllint, ShellCheck, actionlint, TFLint, and a Terraform security scanner.
 - Python, Terraform, YAML, Databricks, and container editor extensions.
 
-Planned files:
+Implemented files:
 
 ```text
 .devcontainer/
 ├── devcontainer.json
 ├── Dockerfile
 └── scripts/
+    ├── install-extensions.sh
     └── post-create.sh
 ```
 
@@ -238,7 +238,7 @@ Terraform owns long-lived Azure and Databricks foundations. Bundles own applicat
 
 For a detailed explanation of the deployed Terraform architecture, Azure-side resources, remote state, providers, dependency graph, cost boundary, and command lifecycle, see [Terraform and Azure architecture](docs/terraform-azure-architecture.md).
 
-For the Terraform knowledge expected of a data engineer, including a two-week learning path and safety checklist, see [Terraform for data engineers](docs/terraform-for-data-engineers.md).
+For the Terraform knowledge expected of a data engineer, including a two-week learning path and safety checklist, see [Terraform for data engineers](docs/terraform-for-data-engineers.md). For the proven identity bootstrap, OIDC policy, CI ownership migration, and deployment flow, see [Databricks deployment and identity runbook](docs/deployments.md).
 
 ### Resource-group module (implemented)
 
@@ -586,7 +586,7 @@ Credential-bearing jobs need only `contents: read` and `id-token: write` unless 
 | Event | Result |
 | --- | --- |
 | Pull request | Validate/plan only; never apply or deploy to shared targets |
-| Merge to `main` | Apply approved development plan and deploy `dev` |
+| Merge to `main` | Run CI, deploy the Databricks bundle to `dev`, then publish a versioned dev prerelease |
 | Qual promotion | Protected approval and same artifact |
 | Production release | Protected approval, branch/tag policy, and same artifact |
 | Schedule | Drift detection, dependency checks, and access review; no automatic drift correction |
@@ -872,6 +872,6 @@ Do not apply Terraform or deploy `qual`/`prod` from a laptop.
 
 ## Summary
 
-This repository will standardize the path from a clean development machine to an auditable Azure Databricks release: decide the boundaries, pin the dev container, bootstrap protected Terraform state, provision Azure and Databricks foundations, govern three catalogs, package Python as a wheel, deploy jobs with bundles, and promote one verified artifact through GitHub Actions.
+This repository now demonstrates the path from a clean development machine to an auditable Azure Databricks `dev` prerelease: decide the boundaries, pin the dev container, bootstrap protected Terraform state, provision Azure and Databricks foundations, govern three catalogs, package Python as a wheel, deploy jobs with bundles, and promote one verified artifact through GitHub Actions.
 
 The first version favors simplicity by sharing one workspace. Its safety depends on separate identities, catalogs, storage roots, grants, bundle paths, approvals, and negative access tests. When stronger isolation is required, production moves to its own subscription and workspace while retaining the same core principles: code-defined infrastructure, short-lived identity, least privilege, reproducibility, controlled promotion, and observable operations.
