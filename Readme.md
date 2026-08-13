@@ -1,6 +1,6 @@
 # Azure Databricks reference platform with Terraform
 
-> **Status:** bootstrap and minimal serverless Azure Databricks platform deployed; Unity Catalog governance and application deployment are next.
+> **Status:** minimal serverless Azure Databricks platform, Unity Catalog governance, CI, and passwordless `dev` bundle deployment are operational.
 >
 > **Last reviewed:** 2026-08-01. Recheck the linked official documentation before implementation or upgrades.
 
@@ -87,8 +87,8 @@ A resource must have one authoritative owner. Never manage the same Databricks j
 | Azure platform | Deployed in `centralindia`; resource group and $10/month subscription budget managed by Terraform |
 | Databricks workspace | Deployed as Premium `Serverless`; no managed resource group or customer-managed networking |
 | Unity Catalog governance | Implemented for dev schemas and runtime grants in `dbw_azref_sandbox_centralindia_001` |
-| Python wheel and bundle | Implemented; deployment awaits governance identities and catalog grants |
-| GitHub Actions | CI implemented; manual OIDC deployment scaffold added |
+| Python wheel and bundle | Implemented and deployed to `dev`; deployment does not execute the job |
+| GitHub Actions | CI and automatic passwordless `dev` deployment operational; `qual` and `prod` remain manual |
 | Monitoring and runbooks | Planned |
 
 ## Azure essentials
