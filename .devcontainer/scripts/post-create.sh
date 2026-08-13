@@ -24,7 +24,9 @@ required_extensions=(
     github.vscode-github-actions
 )
 
-if command -v code >/dev/null 2>&1; then
+if [[ "${CI:-}" == "true" ]]; then
+    printf "Skipping editor extension repair in headless CI.\n"
+elif command -v code >/dev/null 2>&1; then
     installed_extensions="$(code --list-extensions 2>/dev/null | tr "[:upper:]" "[:lower:]")"
     for extension_id in "${required_extensions[@]}"; do
         if ! grep -Fqx "${extension_id}" <<< "${installed_extensions}"; then
