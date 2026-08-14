@@ -1,6 +1,6 @@
 # CDC pipeline architecture scaffold
 
-> **Status:** architecture-only roadmap. Nothing in this document is deployed, scheduled, or executed by the current bundle.
+> **Status:** the repository now contains an unscheduled customer CDF scaffold. It is not executed automatically and requires a CDF-enabled Bronze source table before its first run.
 
 ## Purpose
 
@@ -61,6 +61,7 @@ Every source feed must provide a stable business key, operation, deterministic s
 - [Structured Streaming file ingestion](structured-streaming-file-ingestion.md): Auto Loader, immutable object-storage files, checkpoints, restart behavior, and idempotency boundaries.
 - [Change Data Feed processing](change-data-feed.md): enabling CDF, update/delete semantics, Auto CDC versus custom merges, retention, and `VACUUM`.
 - [Liquid clustering](liquid-clustering.md): physical layout, the four-key limit, key-selection tradeoffs, statistics, and `OPTIMIZE`.
+- [MySQL CDC to Delta CDF scaffold](mysql-to-delta-cdf.md): implemented Auto CDC resource, zero-cost development source, and future managed MySQL ingestion boundary.
 
 ## Metadata-driven scaffold
 

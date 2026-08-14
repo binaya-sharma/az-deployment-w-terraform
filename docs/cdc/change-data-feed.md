@@ -1,6 +1,6 @@
 # Change Data Feed processing
 
-> **Status:** design and learning example; CDF processing is not deployed by the current bundle.
+> **Status:** the bundle contains an unscheduled customer CDF scaffold. It remains inactive until a CDF-enabled Bronze source exists and the pipeline is explicitly run.
 
 ## Why Lakeflow Auto CDC
 

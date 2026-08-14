@@ -1,0 +1,18 @@
+resources:
+  pipelines:
+    customer_cdc:
+      name: retail-customer-cdc
+      catalog: ${var.catalog}
+      schema: silver
+      serverless: true
+      continuous: false
+
+      permissions:
+        - service_principal_name: ${var.deployment_service_principal_application_id}
+          level: CAN_MANAGE
+
+      configuration:
+        source_table: ${var.catalog}.bronze.customers
+      libraries:
+        - glob:
+            include: "../src/pipelines/customer_cdc/**"

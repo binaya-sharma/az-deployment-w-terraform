@@ -24,6 +24,7 @@ The documentation is organized by platform responsibility. Start with the main [
 - [Structured Streaming file ingestion](cdc/structured-streaming-file-ingestion.md): S3/Auto Loader example, checkpoints, restartability, and idempotency boundaries.
 - [Change Data Feed processing](cdc/change-data-feed.md): CDF enablement, update/delete propagation, Auto CDC, retention, and `VACUUM`.
 - [Liquid clustering](cdc/liquid-clustering.md): physical layout, clustering-key selection, statistics, and optimization.
+- [MySQL CDC to Delta CDF scaffold](cdc/mysql-to-delta-cdf.md): implemented Auto CDC definition, development source contract, and future Lakeflow Connect boundary.
 
 ## Images
 

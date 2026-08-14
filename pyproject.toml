@@ -22,6 +22,7 @@ retail-pipeline = "retail_analytics.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["retail_analytics*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
