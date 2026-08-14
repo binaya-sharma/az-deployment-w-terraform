@@ -1,8 +1,8 @@
 """SQL definitions for a small, deterministic medallion pipeline."""
 
 import re
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Callable
 
 _IDENTIFIER_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 
@@ -14,9 +14,7 @@ def object_name(catalog: str, schema: str, table: str) -> str:
     parts = (catalog, schema, table)
 
     if not all(_IDENTIFIER_PATTERN.fullmatch(part) for part in parts):
-        raise ValueError(
-            "Catalog, schema, and table names must be lowercase SQL identifiers"
-        )
+        raise ValueError("Catalog, schema, and table names must be lowercase SQL identifiers")
 
     return ".".join(f"`{part}`" for part in parts)
 
@@ -200,8 +198,7 @@ def statements_for(layer: str, catalog: str) -> list[str]:
 
     if builder is None:
         raise ValueError(
-            f"Unsupported layer: {layer}. "
-            f"Expected one of: {', '.join(SUPPORTED_LAYERS)}"
+            f"Unsupported layer: {layer}. Expected one of: {', '.join(SUPPORTED_LAYERS)}"
         )
 
     return builder(catalog)

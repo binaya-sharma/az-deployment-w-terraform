@@ -238,7 +238,7 @@ Terraform owns long-lived Azure and Databricks foundations. Bundles own applicat
 
 For a detailed explanation of the deployed Terraform architecture, Azure-side resources, remote state, providers, dependency graph, cost boundary, and command lifecycle, see [Terraform and Azure architecture](docs/terraform-azure-architecture.md).
 
-For the Terraform knowledge expected of a data engineer, including a two-week learning path and safety checklist, see [Terraform for data engineers](docs/terraform-for-data-engineers.md). For the proven identity bootstrap, OIDC policy, CI ownership migration, and deployment flow, see [Databricks deployment and identity runbook](docs/deployments.md).
+For the Terraform knowledge expected of a data engineer, including a two-week learning path and safety checklist, see [Terraform for data engineers](docs/terraform-for-data-engineers.md). For the proven identity bootstrap, OIDC policy, CI ownership migration, and deployment flow, see [Databricks deployment and identity runbook](docs/deployments.md). For the documentation-only roadmap for propagating inserts, updates, and deletes, see [CDC pipeline architecture scaffold](docs/cdc-architecture.md).
 
 ### Resource-group module (implemented)
 
