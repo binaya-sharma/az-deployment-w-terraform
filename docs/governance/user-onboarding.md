@@ -42,7 +42,25 @@ Do not infer platform-admin access from a job title.
 
 ## Step 2: add the Microsoft Entra identity
 
-For an external account:
+Choose the path based on who owns and manages the identity. An employee joining the company should normally receive an internal **Member** account. Contractors and partners whose identity remains managed by another organization should normally use an external **Guest** account.
+
+### Internal employee: create a member user
+
+1. Open the [Microsoft Entra admin center](https://entra.microsoft.com/).
+2. Select **Identity** -> **Users** -> **All users**.
+3. Select **New user** -> **Create new user**.
+4. Enter the company user principal name, for example `binaya.sharma_np@company.example`.
+5. Enter the person's real display name and mail nickname.
+6. Keep **Account enabled** selected.
+7. Use an automatically generated temporary password or the company's approved identity-provisioning process.
+8. Select **Review + create**, verify that the user type is **Member**, and create the account.
+9. Provide initial sign-in information through an approved secure channel; never commit or email a password in plain text.
+10. Require a password change at first sign-in where applicable and enforce MFA through the tenant's normal security policy.
+11. Set required employee properties such as usage location, department, manager, and lifecycle/HR attributes according to company policy.
+
+Do not create an employee with a personal address such as `@outlook.com` when the company is responsible for managing the employee's identity.
+
+### Contractor or partner: invite a guest user
 
 1. Open the [Microsoft Entra admin center](https://entra.microsoft.com/).
 2. Select **Identity** -> **Users** -> **All users**.
@@ -52,7 +70,17 @@ For an external account:
 6. Confirm the invitation was accepted and the user appears in the intended tenant.
 7. Require MFA through the tenant's normal security policy.
 
-For an employee, prefer a company-managed member identity such as `name@company.example` instead of a personal guest account.
+Confirm that an invited external identity has user type **Guest**. The guest continues authenticating with the identity managed by their home organization while receiving explicitly assigned access in this tenant.
+
+### Verify either identity type
+
+Before assigning resource permissions, confirm:
+
+- The identity exists in the intended tenant and can sign in.
+- The employee is a **Member**, or the contractor/partner is a **Guest**.
+- The account is enabled and covered by the required MFA/Conditional Access policies.
+- The display name, user principal name/email, manager or sponsor, and review/expiry date are correct.
+- No directory administrator role was assigned as part of user creation.
 
 Do not grant `Global Administrator`, `Privileged Role Administrator`, or another Entra administrator role for normal engineering work.
 

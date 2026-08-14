@@ -18,6 +18,8 @@ The workflow runs `databricks bundle deploy`, not `databricks bundle run`. Deplo
 
 `qual` and `prod` are manual workflow-dispatch targets and should require protected GitHub environment approval. Promote the same tested commit and artifact rather than rebuilding different code per environment.
 
+![Terraform, Databricks Asset Bundle, and GitHub Actions responsibilities](../images/terraform-dab-github-actions-responsibilities.png)
+
 ## Why the administration layers are separate
 
 Azure and Databricks enforce different security boundaries:

@@ -55,17 +55,12 @@ Every source feed must provide a stable business key, operation, deterministic s
 7. Build Gold models from governed Silver state rather than raw events.
 8. Persist metrics and the last successfully processed source position.
 
-## Why Lakeflow Auto CDC
 
-The preferred implementation is a serverless Lakeflow Spark Declarative Pipeline using Auto CDC. It provides managed handling for ordered inserts, updates, deletes, and SCD Type 1 or Type 2 targets, avoiding custom `foreachBatch` and `MERGE` state logic for the normal CDC path.
+## Topic guides
 
-Delta Change Data Feed and Structured Streaming serve different purposes:
-
-- Change Data Feed exposes row-level changes from a Delta source.
-- Structured Streaming incrementally consumes those changes.
-- Auto CDC applies the ordered changes to target state.
-
-If the upstream boundary is already a Delta table, enable and consume CDF there. For a database or event system, use its supported connector or streaming interface and normalize its envelope in Bronze.
+- [Structured Streaming file ingestion](structured-streaming-file-ingestion.md): Auto Loader, immutable object-storage files, checkpoints, restart behavior, and idempotency boundaries.
+- [Change Data Feed processing](change-data-feed.md): enabling CDF, update/delete semantics, Auto CDC versus custom merges, retention, and `VACUUM`.
+- [Liquid clustering](liquid-clustering.md): physical layout, the four-key limit, key-selection tradeoffs, statistics, and `OPTIMIZE`.
 
 ## Metadata-driven scaffold
 

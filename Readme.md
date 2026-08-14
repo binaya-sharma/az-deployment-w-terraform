@@ -236,9 +236,11 @@ uv --version
 
 Terraform owns long-lived Azure and Databricks foundations. Bundles own application jobs and releases.
 
-For a detailed explanation of the deployed Terraform architecture, Azure-side resources, remote state, providers, dependency graph, cost boundary, and command lifecycle, see [Terraform and Azure architecture](docs/terraform-azure-architecture.md).
+Browse all learning material by domain in the [project documentation index](docs/README.md).
 
-For the Terraform knowledge expected of a data engineer, including a two-week learning path and safety checklist, see [Terraform for data engineers](docs/terraform-for-data-engineers.md). For the proven identity bootstrap, OIDC policy, CI ownership migration, and deployment flow, see [Databricks deployment and identity runbook](docs/deployments.md). For the documentation-only roadmap for propagating inserts, updates, and deletes, see [CDC pipeline architecture scaffold](docs/cdc-architecture.md). For group-based onboarding, least-privilege permissions, verification, and offboarding, see [User onboarding and least-privilege access](docs/user-onboarding.md). For the boundary between Azure roles, Unity Catalog grants, and fine-grained data policies, see [RBAC and ABAC for the Azure Databricks platform](docs/rbac-and-abac.md).
+For a detailed explanation of the deployed Terraform architecture, Azure-side resources, remote state, providers, dependency graph, cost boundary, and command lifecycle, see [Terraform and Azure architecture](docs/terraform/azure-architecture.md).
+
+For the Terraform knowledge expected of a data engineer, including a two-week learning path and safety checklist, see [Terraform for data engineers](docs/terraform/for-data-engineers.md). For the proven identity bootstrap, OIDC policy, CI ownership migration, and deployment flow, see [Databricks deployment and identity runbook](docs/deployment/databricks-identity-runbook.md). For the documentation-only roadmap for propagating inserts, updates, and deletes, see [CDC pipeline architecture scaffold](docs/cdc/README.md). For group-based onboarding, least-privilege permissions, verification, and offboarding, see [User onboarding and least-privilege access](docs/governance/user-onboarding.md). For the boundary between Azure roles, Unity Catalog grants, and fine-grained data policies, see [RBAC and ABAC for the Azure Databricks platform](docs/governance/rbac-and-abac.md). For catalogs, schemas, managed/external storage, volumes, cloud credentials, lineage, and auditing, see [Unity Catalog architecture and storage governance](docs/governance/unity-catalog.md).
 
 ### Resource-group module (implemented)
 

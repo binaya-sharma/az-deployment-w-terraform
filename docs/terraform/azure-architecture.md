@@ -35,6 +35,8 @@ Microsoft Entra tenant: bbc40903-74f4-495f-9185-08f2bf5b64be
 
 Tenant creation, billing setup, management-group creation, and creation of the first subscription remain manual organization-level operations. Terraform ownership starts inside the subscription.
 
+![Azure tenant, management group, and subscription hierarchy](../images/azure-databricks-management-group-hierarchy.png)
+
 ```mermaid
 flowchart TB
     SUB[Subscription: sub-azdbx-sandbox-001]
