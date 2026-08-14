@@ -191,4 +191,4 @@ You are ready to contribute when you can answer all of these:
 - If the apply fails halfway, what has already changed and what should be rerun?
 - Does the runtime service principal have only the required Unity Catalog privileges?
 
-For the concrete resource graph and Azure-side implementation, continue with [Terraform and Azure architecture](terraform-azure-architecture.md).
+For the concrete resource graph and Azure-side implementation, continue with [Terraform and Azure architecture](azure-architecture.md).
