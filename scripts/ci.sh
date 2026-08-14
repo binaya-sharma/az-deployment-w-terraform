@@ -23,7 +23,7 @@ echo "== YAML =="
 uv run yamllint .github databricks.yml resources
 
 echo "== Shell =="
-shellcheck .devcontainer/scripts/post-create.sh scripts/ci.sh
+shellcheck .devcontainer/scripts/*.sh scripts/ci.sh
 
 echo "== Terraform format =="
 terraform fmt -check -diff -recursive infrastructure
