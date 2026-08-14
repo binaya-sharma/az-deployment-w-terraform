@@ -1,1 +1,1 @@
-Hi, this is a temporary file created to verify the PR approval workflow and confirm that the squash merge process works as expected.
+Hi Paltform Admin, this is a temporary file created to verify the PR approval workflow and confirm that the squash merge process works as expected.
