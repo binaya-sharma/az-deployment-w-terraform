@@ -6,7 +6,7 @@
 
 This repository is a practical, end-to-end learning reference for building and deploying an Azure Databricks platform. It covers the developer environment, Microsoft Entra ID, Azure foundations, Terraform, Unity Catalog, Python wheel packaging, Databricks bundle deployment, GitHub Actions, testing, security, cost, monitoring, recovery, and promotion through `dev`, `qual`, and `prod`.
 
-The first version intentionally uses **one Azure Databricks workspace and its serverless default-storage catalog**. Terraform manages the development schemas and grants inside that catalog without adding customer-managed ADLS. Future `qual` and `prod` environments should use protected catalogs or separate workspaces when stronger isolation is required.
+The first version intentionally uses **one Azure Databricks workspace and its serverless default-storage catalog**. Terraform manages the development schemas and grants inside that catalog without adding customer-managed ADLS. The bundle and workflow already expose `dev`, `qual`, and `prod` targets; the future [multi-workspace topology](docs/deployment/multi-workspace-promotion.md) maps them to separately governed workspaces without copying application definitions.
 
 ## Target outcome
 

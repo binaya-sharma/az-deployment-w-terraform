@@ -19,6 +19,8 @@ variables:
     description: Application ID of the only normal writer to the pipeline schemas.
 
 targets:
+  # GitHub environments supply DATABRICKS_HOST and BUNDLE_VAR_* values,
+  # allowing one bundle to deploy to separate workspaces.
   dev:
     default: true
     mode: production
