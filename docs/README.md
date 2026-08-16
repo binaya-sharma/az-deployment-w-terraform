@@ -9,8 +9,8 @@ The documentation is organized by platform responsibility. Start with the main [
 
 ## Deployment
 
+- [DAB multi-environment deployment](deployment/dab-multi-environment-notes.md) ([PDF](deployment/dab-multi-environment-deployment.pdf)): practical guide to bundle structure, targets, workspace and identity separation, compute configuration, and artifact promotion.
 - [Databricks deployment and identity runbook](deployment/databricks-identity-runbook.md): GitHub Actions, OIDC federation, deployment/runtime identities, permissions, promotion, and troubleshooting.
-- [Multi-workspace deployment scaffold](deployment/multi-workspace-promotion.md): one bundle across separate dev, qual, and prod workspaces, environment contracts, identity isolation, Terraform boundaries, and promotion.
 - [Retail pipeline](deployment/retail-pipeline.md): current bundle job, wheel entry point, Bronze/Silver/Gold smoke flow, and runtime behavior.
 
 ## Governance
